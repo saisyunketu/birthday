@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday My Love!</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            text-align: center;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        h1 {
+            color: #d23669;
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .photo-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .photo-gallery img {
+            aspect-ratio: 5/8; /* 保持统一宽高比 */
+            object-fit: cover; /* 保持图片比例 */
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-out;
+        }
+        .photo-gallery img.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .photo-gallery img:hover {
+            transform: scale(1.05);
+        }
+        .love-letter {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #d23669;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #ff4757;
+            transform: translateY(-3px);
+        }
+        .hidden {
+            display: none;
+        }
+        .countdown {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #countdown-timer {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            margin-top: 15px;
+        }
+        #countdown-timer div {
+            font-size: 1.5em;
+        }
+        #countdown-timer span {
+            font-size: 2em;
+            font-weight: bold;
+            color: #d23669;
+        }
+        .memory-wall {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .memories-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .memory-card {
+            background: #fff9fa;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: left;
+            border-left: 4px solid #d23669;
+        }
+        .memory-date {
+            color: #d23669;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .heart {
+            position: fixed;
+            pointer-events: none;
+            opacity: 0.7;
+            animation: fall linear forwards;
+            z-index: 0;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh); }
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="hearts-container"></div>
+    
+    <div class="container">
+        <h1>宝宝20岁生日快乐！！！</h1>
+        <p>这是2025年6月7日 - 特别为你而作的网站</p>
+        
+        <div class="countdown">
+            <h3>距离你的下一个生日还有:</h3>
+            <div id="countdown-timer">
+                <div><span id="days">00</span><br>天</div>
+                <div><span id="hours">00</span><br>小时</div>
+                <div><span id="minutes">00</span><br>分钟</div>
+                <div><span id="seconds">00</span><br>秒</div>
+            </div>
+        </div>
+        
+        <div class="love-letter">
+            <p>亲爱的宝宝，我想告诉你...</p>
+            <p id="fullMessage" class="hidden"></p>
+            <button class="btn" onclick="showMessage()">点击打开信封</button>
+        </div>
+        
+        <div class="memory-wall">
+            <h2>我们的时光记忆</h2>
+            <div class="memories-container">
+                <!-- 记忆卡片会在这里动态添加 -->
+            </div>
+        </div>
+        
+        <h2>我们的美好回忆</h2>
+        <div class="photo-gallery">
+            
+            
+        </div>
+        
+        <h2>生日惊喜</h2>
+        <button class="btn" onclick="startGame()">来玩默契挑战！</button>
+        <div id="gameArea" class="hidden">
+            <!-- 游戏内容会在这里显示 -->
+        </div>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="https://img.tukuppt.com/newpreview_music/08/99/85/5c89a1b703ffe69292.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // 音乐控制
+        const bgMusic = document.getElementById('bgMusic');
+        let isMusicPlaying = false;
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                bgMusic.pause();
+                musicBtn.textContent = '🎵 播放音乐';
+            } else {
+                bgMusic.play();
+                musicBtn.textContent = '🎵 暂停音乐';
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+        
+        // 添加音乐控制按钮
+        const musicBtn = document.createElement('button');
+        musicBtn.textContent = '🎵 播放音乐';
+        musicBtn.classList.add('btn');
+        musicBtn.style.position = 'fixed';
+        musicBtn.style.bottom = '20px';
+        musicBtn.style.right = '20px';
+        musicBtn.style.zIndex = '1000';
+        musicBtn.onclick = toggleMusic;
+        document.body.appendChild(musicBtn);
+        
+        // 点击按钮音效
+        function playClickSound() {
+            const clickSound = new Audio('https://www.soundjay.com/buttons/sounds/button-11.mp3');
+            clickSound.volume = 0.3;
+            clickSound.play();
+        }
+        
+        // 为所有按钮添加点击音效
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', playClickSound);
+        });
+        
+        // 照片悬停音效
+        document.querySelectorAll('.photo-gallery img').forEach(img => {
+            img.addEventListener('mouseenter', () => {
+                const hoverSound = new Audio('https://www.soundjay.com/buttons/sounds/button-10.mp3');
+                hoverSound.volume = 0.2;
+                hoverSound.play();
+            });
+        });
+        
+        // 打字机效果的情书
+        function typeWriter(element, text, speed) {
+            let i = 0;
+            function typing() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(typing, speed);
+                }
+            }
+            typing();
+        }
+        
+        function showMessage() {
+            const fullMessage = document.getElementById('fullMessage');
+            fullMessage.classList.remove('hidden');
+            document.querySelector('.love-letter button').classList.add('hidden');
+            
+            const loveLetterText = `哈哈哈，不会搞得那么端庄啦，我只想说：“年龄又添一笔，爱你不设期限，生日快乐，小狗~
+            永远爱你的，
+            阿杰`;
+            
+            fullMessage.innerHTML = '';
+            typeWriter(fullMessage, loveLetterText, 30);
+        }
+        
+        function startGame() {
+            window.location.href = "game.html";
+        }
+        
+        // 爱心动画
+        function createHearts() {
+            const heart = document.createElement('div');
+            heart.innerHTML = '❤️';
+            heart.classList.add('heart');
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.fontSize = (Math.random() * 20 + 10) + 'px';
+            heart.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            document.getElementById('hearts-container').appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 5000);
+        }
+        
+        // 每隔一段时间创建爱心
+        setInterval(createHearts, 300);
+        
+        // 照片点击放大功能
+        document.querySelectorAll('.photo-gallery img').forEach(img => {
+            img.addEventListener('click', function() {
+                const modal = document.createElement('div');
+                modal.classList.add('modal');
+                
+                const modalImg = document.createElement('img');
+                modalImg.src = this.src;
+                
+                modal.appendChild(modalImg);
+                document.body.appendChild(modal);
+                
+                modal.addEventListener('click', () => {
+                    modal.remove();
+                });
+            });
+        });
+        
+        // 倒计时功能
+        function updateCountdown() {
+            const now = new Date();
+            const nextBirthday = new Date(now.getFullYear() + 1, 5, 26); // 2025年6月7日
+            if (now > nextBirthday) {
+                nextBirthday.setFullYear(nextBirthday.getFullYear() + 1);
+            }
+            
+            const diff = nextBirthday - now;
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            document.getElementById('days').textContent = days.toString().padStart(2, '0');
+            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+        }
+        
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+        
+        // 记忆墙数据
+        const memories = [
+            {
+                date: "2017",
+                title: "我们的开始",
+                description: "我们在八酱群中相识，因王者而相遇，这是我们共同的起点。"
+            },
+            {
+                date: "2018",
+                title: "第一次关系",
+                description: "我们第一次在王者中成为了恋人，我们都是幼稚的孩子。当时觉得你好可爱，你的声音直击我的灵魂，让我心中小鹿乱撞.... "
+            },
+            {
+                date: "2020",
+                title: "第一份礼物",
+                description: "在我高中的时候，你送了我一份礼物，一个抱枕，成为了我人生中值得纪念的惊喜...当时我真的好开心好开心...每天都抱着那个抱枕...感觉好幸福"
+            },
+            {
+                date: "2023",
+                title: "更加贴近现实",
+                description: "你步入了高考，我们之间讲了许多现实的事情，我们正从虚拟走向现实....我们的心也越贴越近..."
+            },
+            {
+                date: "2024",
+                title: "感情不断升华",
+                description: "我们经常在电话中暧昧...我们的恋爱更加深入，对对方也更加向往..."
+            },
+            {
+                date: "2025-以后",
+                title: "是曾经是永远",
+                description: "时光荏苒，但我们之间的红线依旧，我们的曾经已是永远...希望我们的以后也是永远，就像我们所说的那样，永远爱你ღ"
+            }
+        ];
+        
+        // 渲染记忆墙
+        function renderMemoryWall() {
+            const container = document.querySelector('.memories-container');
+            
+            memories.forEach(memory => {
+                const card = document.createElement('div');
+                card.classList.add('memory-card');
+                card.innerHTML = `
+                    <div class="memory-date">${memory.date}</div>
+                    <h3>${memory.title}</h3>
+                    <p>${memory.description}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', renderMemoryWall);
+
+        // 图片数组
+    const photos = [
+        "images/memory1.jpg",
+        "images/memory2.jpg",
+        "images/memory5.jpg",
+        "images/memory3.jpg",
+        "images/memory4.jpg",
+        "images/memory6.jpg",
+        "images/memory7.jpg",
+        "images/memory8.jpg",
+        "images/memory9.jpg",
+        "images/memory10.jpg",
+        "images/memory11.jpg",
+        "images/memory12.jpg",
+        "images/memory13.jpg",
+        "images/memory14.jpg",
+        "images/memory15.jpg",
+        "images/memory16.jpg"
+    ];
+
+    function renderPhotoGallery() {
+    const gallery = document.querySelector('.photo-gallery');
+    
+    photos.forEach((photoUrl, index) => {
+        const img = document.createElement('img');
+        img.src = photoUrl;
+        img.alt = "我们的回忆";
+        gallery.appendChild(img);
+        
+        // 使用setTimeout来错开每个图片的显示时间，实现逐个显示的效果
+        setTimeout(() => {
+            img.classList.add('visible');
+        }, index * 100); // 每张图片间隔100毫秒
+    });
+}
+
+    // 在DOM加载完成后执行
+    document.addEventListener('DOMContentLoaded', renderPhotoGallery);
+    </script>
+</body>
+</html>
