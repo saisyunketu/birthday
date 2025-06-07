@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我们的默契测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* 背景爱心动画 - 加速 */
+        .heart {
+            position: fixed;
+            pointer-events: none;
+            opacity: 0.7;
+            animation: fall linear forwards;
+            z-index: 0;
+            animation-duration: 5s; /* 从10s减少到5s */
+        }
+        
+        @keyframes fall {
+            to { transform: translateY(100vh); }
+        }
+        
+        .btn-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #6c757d;
+            z-index: 1000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: #5a6268;
+            transform: translateY(-3px);
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 10;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #d23669;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .intro {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            color: #555;
+        }
+        
+        .progress {
+            height: 12px;
+            background: #f1f1f1;
+            border-radius: 10px;
+            margin: 25px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #ff6b81, #d23669);
+            width: 0%;
+            transition: width 0.5s;
+            border-radius: 10px;
+        }
+        
+        .question {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            position: relative;
+            z-index: 20;
+        }
+        
+        .question h3 {
+            color: #d23669;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .option {
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #e9e9e9;
+            font-size: 1.1em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .option:hover {
+            background: #f0f0f0;
+            border-color: #d23669;
+            transform: translateY(-3px);
+        }
+        
+        .selected {
+            background: #d23669;
+            color: white;
+            border-color: #d23669;
+            box-shadow: 0 4px 8px rgba(210, 54, 105, 0.3);
+        }
+        
+        .btn {
+            background: #d23669;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-top: 25px;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(210, 54, 105, 0.3);
+        }
+        
+        .btn:hover {
+            background: #ff4757;
+            transform: translateY(-3px) scale(1.05);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            margin-right: 15px;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .quiz-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .result {
+            display: none;
+            margin-top: 40px;
+            font-size: 1.2em;
+            text-align: center;
+            position: relative;
+            z-index: 20;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result h2 {
+            color: #d23669;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        
+        .result-meter {
+            width: 100%;
+            height: 35px;
+            background: #f1f1f1;
+            border-radius: 20px;
+            margin: 25px 0;
+            overflow: hidden;
+        }
+        
+        .result-meter div {
+            height: 100%;
+            background: linear-gradient(to right, #ff6b81, #d23669);
+            border-radius: 20px;
+            transition: width 1.5s ease-out;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .score-display {
+            font-size: 1.8em;
+            color: #d23669;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        
+        .message {
+            font-size: 1.4em;
+            margin: 25px 0;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .detailed-results {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 30px 0;
+            text-align: left;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .detailed-results h3 {
+            color: #d23669;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+        
+        .detailed-results ul {
+            list-style-type: none;
+        }
+        
+        .detailed-results li {
+            margin-bottom: 20px;
+            padding: 18px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            transition: transform 0.3s;
+        }
+        
+        .detailed-results li:hover {
+            transform: translateX(10px);
+        }
+        
+        .correct-answer {
+            background-color: rgba(76, 175, 80, 0.1);
+            border-left: 5px solid #4CAF50;
+        }
+        
+        .wrong-answer {
+            background-color: rgba(244, 67, 54, 0.1);
+            border-left: 5px solid #f44336;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        /* 音乐按钮样式 */
+        .music-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: #d23669;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(210, 54, 105, 0.3);
+        }
+
+        .music-btn:hover {
+            background: #ff4757;
+            transform: translateY(-3px);
+        }
+        /* 庆祝动画容器 */
+        .celebration-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        /* 不同庆祝动画 */
+        .hug-animation {
+            font-size: 9em;
+            animation: float 3s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        .encourage-animation {
+            font-size: 7em;
+            animation: bounce 1.5s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        .stars-animation {
+            font-size: 6em;
+            animation: spin 5s linear infinite;
+        }
+        
+        .hearts-animation {
+            font-size: 8em;
+            animation: pulse 1.8s ease-in-out infinite;
+        }
+        
+        .fireworks-animation {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .animation-text {
+            font-size: 2.5em;
+            color: #d23669;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+            margin-top: 20px;
+            animation: text-pulse 2s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-40px) scale(1.1); }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes text-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.9; }
+        }
+        
+        /* 烟花粒子 */
+        .firework-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: firework-explode 1.5s forwards;
+            box-shadow: 0 0 10px currentColor;
+        }
+        
+        @keyframes firework-explode {
+            0% { transform: translate(0, 0) scale(0); opacity: 1; }
+            50% { opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(1.5); opacity: 0; }
+        }
+        
+        /* 撒爱心动画 */
+        .heart-particle {
+            position: absolute;
+            font-size: 2em;
+            animation: heart-fall 6s forwards;
+        }
+        
+        @keyframes heart-fall {
+            0% { 
+                transform: translate(0, 0) scale(0.5); 
+                opacity: 1;
+            }
+            100% { 
+                transform: translate(var(--tx), var(--ty)) scale(1.5); 
+                opacity: 0;
+            }
+        }
+        
+        /* 新增爆炸粒子效果 */
+        .explosion-particle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: explosion 2s ease-out forwards;
+            box-shadow: 0 0 15px currentColor;
+            opacity: 0;
+        }
+        
+        @keyframes explosion {
+            0% { 
+                transform: translate(0, 0) scale(0); 
+                opacity: 1;
+            }
+            50% { 
+                opacity: 0.9;
+            }
+            100% { 
+                transform: translate(var(--tx), var(--ty)) scale(2); 
+                opacity: 0;
+            }
+        }
+        
+        /* 新增闪光效果 */
+        .sparkle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: sparkle 1.5s ease-out forwards;
+            box-shadow: 0 0 10px gold;
+        }
+        
+        @keyframes sparkle {
+            0% { 
+                transform: translate(0, 0) scale(0); 
+                opacity: 1;
+            }
+            70% { 
+                opacity: 0.8;
+            }
+            100% { 
+                transform: translate(var(--tx), var(--ty)) scale(1.5); 
+                opacity: 0;
+            }
+        }
+        
+        /* 新增环状扩散效果 */
+        .ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 215, 0, 0.7);
+            animation: ring-expand 2s ease-out forwards;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+            opacity: 0;
+        }
+        
+        @keyframes ring-expand {
+            0% { 
+                transform: translate(-50%, -50%) scale(0.1); 
+                opacity: 1;
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(10); 
+                opacity: 0;
+            }
+        }
+        
+        /* 新增全屏闪光效果 */
+        @keyframes flash {
+            0% { 
+                background-color: rgba(255, 255, 255, 0); 
+            }
+            50% { 
+                background-color: rgba(255, 255, 255, 0.8); 
+            }
+            100% { 
+                background-color: rgba(255, 255, 255, 0); 
+            }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 1em;
+            }
+            
+            .animation-text {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+    <source src="https://img.tukuppt.com/newpreview_music/08/99/85/5c89a1b703ffe69292.mp3" type="audio/mpeg">
+    </audio>
+    <div id="floating-hearts"></div>
+    <div id="celebration-container" class="celebration-container" style="display:none;"></div>
+    
+    <button class="btn-back" onclick="goBack()">← 返回生日页</button>
+    
+    <div class="container">
+        <h1>💖💖 我们的默契测试 💖💖</h1>
+        <p class="intro">看看我们的选择会是什么样的！共有5道题目，测试我们的默契程度~</p>
+        
+        <div class="progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div id="quizContainer">
+            <!-- 题目会在这里动态加载 -->
+        </div>
+        
+        <div class="quiz-nav">
+            <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">上一题</button>
+            <button class="btn" id="nextBtn" onclick="nextQuestion()">下一题</button>
+        </div>
+        
+        <div class="result" id="result">
+            <!-- 结果会在这里显示 -->
+        </div>
+    </div>
+
+    <!-- 音效 -->
+    <audio id="selectSound" src="https://www.soundjay.com/buttons/sounds/button-11.mp3"></audio>
+    <audio id="hugSound" src="https://img.tukuppt.com/newpreview_music/00/06/20/5cc17e24031878143.mp3"></audio>
+    <audio id="encourageSound" src="https://img.tukuppt.com/newpreview_music/00/06/20/5cc17e24031878143.mp3"></audio>
+    <audio id="starsSound" src="https://img.tukuppt.com/newpreview_music/00/06/20/5cc17e24031878143.mp3"></audio>
+    <audio id="heartsSound" src="https://img.tukuppt.com/newpreview_music/00/06/20/5cc17e24031878143.mp3"></audio>
+    <audio id="fireworksSound" src="https://img.tukuppt.com/newpreview_music/00/06/20/5cc17e24031878143.mp3"></audio>
+
+    <script>
+        // 题目数据
+        const questions = [
+            {
+                question: "哆啦A梦的神奇道具最想拥有的是？",
+                options: [
+                    "任意门",
+                    "时光机",
+                    "记忆面包",
+                    "竹蜻蜓"
+                ],
+                answer: "任意门"
+            },
+            {
+                question: "最喜欢以下哪种口味？",
+                options: [
+                    "巧克力",
+                    "香草",
+                    "草莓",
+                    "香芋"
+                ],
+                answer: "香芋"
+            },
+            {
+                question: "你觉得我们第一次约会做什么？",
+                options: [
+                    "爬山",
+                    "逛游乐园",
+                    "看电影",
+                    "看动物园"
+                ],
+                answer: "看电影"
+            },
+            {
+                question: "对方以下哪种行为最觉得讨厌",
+                options: [
+                    "擅自翻自己手机聊天记录",
+                    "提供完美的情绪价值但很少做事情",
+                    "强行亲吻自己",
+                    "擅自使用自己贵重的东西，例如化妆品"
+                ],
+                answer: "擅自翻自己手机聊天记录"
+            },
+            {
+                question: "最想和对方一起去哪里旅行？",
+                options: [
+                    "马尔代夫",
+                    "日本",
+                    "欧洲",
+                    "新西兰"
+                ],
+                answer: "日本"
+            }
+        ];
+        
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedOption = null;
+        let userAnswers = new Array(questions.length).fill(null);
+        
+        // 初始化背景爱心动画 - 加速版
+        function initFloatingHearts() {
+            const container = document.getElementById('floating-hearts');
+            setInterval(() => {
+                createFloatingHeart(container);
+            }, 250); // 加快爱心创建频率
+        }
+        
+        function createFloatingHeart(container) {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.innerHTML = '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.fontSize = (Math.random() * 20 + 10) + 'px';
+            heart.style.color = `hsl(${Math.random() * 60 + 330}, 100%, 70%)`;
+            heart.style.animationDuration = (Math.random() * 5 + 3) + 's'; // 3-8秒完成动画
+            container.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 9000);
+        }
+        
+        // 确保DOM完全加载后再执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化测验
+            loadQuestion();
+            initFloatingHearts();
+            
+            // 为选项添加点击音效
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('option')) {
+                    document.getElementById('selectSound').currentTime = 0;
+                    document.getElementById('selectSound').play();
+                }
+            });
+        });
+        
+        // 加载题目
+        function loadQuestion() {
+            const quizContainer = document.getElementById('quizContainer');
+            const question = questions[currentQuestion];
+            
+            // 更新进度条
+            const progress = ((currentQuestion) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            // 更新导航按钮状态
+            document.getElementById('prevBtn').style.display = currentQuestion === 0 ? 'none' : 'block';
+            
+            // 如果是最后一题，修改按钮文字
+            document.getElementById('nextBtn').textContent = currentQuestion === questions.length - 1 ? '查看结果' : '下一题';
+            
+            // 构建题目HTML
+            let optionsHtml = '';
+            question.options.forEach((option, index) => {
+                const isSelected = userAnswers[currentQuestion] === option;
+                optionsHtml += `
+                    <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(this, '${option}')">
+                        ${option}
+                    </div>
+                `;
+            });
+            
+            quizContainer.innerHTML = `
+                <div class="question">
+                    <h3>第 ${currentQuestion + 1} 题: ${question.question}</h3>
+                    <div class="options">
+                        ${optionsHtml}
+                    </div>
+                </div>
+            `;
+            
+            // 恢复之前的选择
+            if (userAnswers[currentQuestion] !== null) {
+                selectedOption = userAnswers[currentQuestion];
+            } else {
+                selectedOption = null;
+            }
+        }
+        
+        // 选择选项
+        function selectOption(element, option) {
+            // 移除之前的选择
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            
+            // 添加新选择
+            element.classList.add('selected');
+            selectedOption = option;
+            userAnswers[currentQuestion] = option;
+        }
+        
+        // 上一题
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        }
+        
+        // 下一题或查看结果
+        function nextQuestion() {
+            if (selectedOption === null && userAnswers[currentQuestion] === null && currentQuestion < questions.length) {
+                alert('请选择一个答案！');
+                return;
+            }
+            
+            // 如果是查看结果
+            if (currentQuestion === questions.length - 1) {
+                // 进度条拉满
+                document.getElementById('progressBar').style.width = '100%';
+                calculateScore();
+                showResult();
+                return;
+            }
+            
+            // 移动到下一题
+            currentQuestion++;
+            loadQuestion();
+        }
+        
+        // 计算分数
+        function calculateScore() {
+            score = 0;
+            for (let i = 0; i < questions.length; i++) {
+                if (userAnswers[i] === questions[i].answer) {
+                    score++;
+                }
+            }
+        }
+        
+        // 显示结果
+        function showResult() {
+            const resultContainer = document.getElementById('result');
+            const quizContainer = document.getElementById('quizContainer');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            quizContainer.style.display = 'none';
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+            
+            // 计算默契百分比
+            const percentage = (score / questions.length) * 100;
+            
+            // 根据分数给出不同评价
+            let message = '';
+            if (percentage === 100) {
+                message = '完美默契！我们简直是天生一对！❤️❤️❤️';
+            } else if (percentage >= 80) {
+                message = '非常默契！我们真的很了解彼此呢！💕';
+            } else if (percentage >= 60) {
+                message = '还不错！是什么不一样嘞hhh';
+            } else {
+                message = '看样子我们想法各异呀hhh那可要好好沟通哦~💪';
+            }
+            
+            // 创建详细结果分析
+            let detailedResults = '<div class="detailed-results"><h3>详细分析:</h3><ul>';
+            questions.forEach((q, index) => {
+                const isCorrect = userAnswers[index] === q.answer;
+                detailedResults += `
+                    <li class="${isCorrect ? 'correct-answer' : 'wrong-answer'}">
+                        <strong>第 ${index + 1} 题:</strong> ${q.question}<br>
+                        你的答案: <span class="user-answer">${userAnswers[index] || '未回答'}</span> | 
+                        正确答案: <span class="correct-answer-text">${q.answer}</span>
+                    </li>
+                `;
+            });
+            detailedResults += '</ul></div>';
+            
+            resultContainer.innerHTML = `
+                <h2>测试结果</h2>
+                <div class="result-meter">
+                    <div style="width: ${percentage}%"></div>
+                </div>
+                <div class="score-display">
+                    得分: ${score} / ${questions.length}
+                </div>
+                <div class="score-display">
+                    默契度: ${percentage}%
+                </div>
+                <div class="message">${message}</div>
+                
+                ${detailedResults}
+                
+                <div class="button-group">
+                    <button class="btn" onclick="restartQuiz()">再玩一次</button>
+                </div>
+            `;
+            resultContainer.style.display = 'block';
+            
+            // 根据答对题数显示不同庆祝动画
+            showCelebrationAnimation(score);
+            
+            // 滚动到结果区域
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+// 显示庆祝动画
+function showCelebrationAnimation(correctCount) {
+    const container = document.getElementById('celebration-container');
+    container.innerHTML = '';
+    container.style.display = 'flex';
+    
+    // 根据答对题数选择不同动画
+    let animationElement;
+    let textElement;
+    let soundId;
+    
+    if (correctCount <= 2) {
+        animationElement = document.createElement('div');
+        animationElement.className = 'hug-animation';
+        animationElement.innerHTML = '🤗🤗';
+        
+        textElement = document.createElement('div');
+        textElement.className = 'animation-text';
+        textElement.innerHTML = '各有各的想法很正常啦~，爱你~';
+        
+        soundId = 'hugSound';
+    } 
+    else if (correctCount === 3) {
+        animationElement = document.createElement('div');
+        createStarsAnimation(animationElement);
+        soundId = 'starsSound';
+    } 
+    else if (correctCount === 4) {
+        animationElement = document.createElement('div');
+        animationElement.className = 'hearts-animation';
+        animationElement.innerHTML = '💖💖';
+        createHeartsAnimation(animationElement);
+        
+        soundId = 'heartsSound';
+    } 
+    else if (correctCount === 5) {
+        // 创建烟花容器
+        const fireworksContainer = document.createElement('div');
+        fireworksContainer.className = 'fireworks-animation';
+        createFireworks(fireworksContainer);
+        container.appendChild(fireworksContainer);
+        
+        // 创建爱心容器
+        const heartsContainer = document.createElement('div');
+        createHeartsAnimation(heartsContainer);
+        container.appendChild(heartsContainer);
+        
+        // 添加全屏闪光效果
+        createFullScreenFlash(container);
+        
+        // 添加环状扩散效果
+        createRingEffects(container);
+        
+        soundId = 'fireworksSound';
+    }
+    
+    if (animationElement) {
+        container.appendChild(animationElement);
+        if (textElement) container.appendChild(textElement);
+        document.getElementById(soundId).play();
+        
+        // 10秒后移除动画
+        setTimeout(() => {
+            container.style.display = 'none';
+        }, 10000);
+    }
+}
+
+function createStarsAnimation(container) {
+    const starChars = ['⭐', '🌟', '✨', '💫', '☄️'];
+    const colors = ['#fff', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
+    
+    // 创建300个星星（从顶部掉落）
+    for (let i = 0; i < 67; i++) {
+        setTimeout(() => {
+            const star = document.createElement('div');
+            star.className = 'falling-star'; // 使用新类名
+            star.innerHTML = starChars[Math.floor(Math.random() * starChars.length)];
+            
+            // 随机样式
+            star.style.color = colors[Math.floor(Math.random() * colors.length)];
+            star.style.left = Math.random() * 100 + 'vw';
+            star.style.fontSize = (Math.random() * 25 + 15) + 'px';
+            star.style.top = '-50px'; // 从屏幕外顶部开始
+            star.style.position = 'fixed';
+            star.style.willChange = 'transform, opacity';
+            
+            // 随机动画参数
+            const duration = (Math.random() * 3 + 2) + 's';
+            const delay = (Math.random() * 2) + 's';
+            const rotation = Math.random() * 360;
+            const fallDistance = window.innerHeight + 100 + 'px';
+            const swayDistance = (Math.random() * 200 - 100) + 'px'; // 左右轻微摆动
+            
+            // 直接应用动画（不使用CSS类）
+            star.style.animation = `
+                star-fall ${duration} ${delay} linear forwards,
+                star-twinkle 0.5s ease-in-out infinite
+            `;
+            
+            // 通过CSS变量传递动态参数
+            star.style.setProperty('--fall-distance', fallDistance);
+            star.style.setProperty('--sway-distance', swayDistance);
+            star.style.setProperty('--rotation-start', rotation + 'deg');
+            star.style.setProperty('--rotation-end', (rotation + 360) + 'deg');
+            
+            container.appendChild(star);
+            
+            // 动画结束后移除
+            setTimeout(() => star.remove(), 10000);
+        }, i * 20);
+    }
+    
+    // 动态添加动画关键帧
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes star-fall {
+            0% {
+                transform: translate(0, 0) rotate(var(--rotation-start));
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--sway-distance), var(--fall-distance)) rotate(var(--rotation-end));
+                opacity: 0;
+            }
+        }
+        @keyframes star-twinkle {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; filter: drop-shadow(0 0 8px currentColor); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // 10秒后移除样式
+    setTimeout(() => style.remove(), 10000);
+}
+// 创建烟花效果 - 增强版
+function createFireworks(container) {
+    const colors = ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff', '#ff6b6b', '#ff8e8e', '#ffaaaa', '#ff6b9d', '#ff8ec6'];
+    
+    // 烟花数量增加到300
+    for (let i = 0; i < 300; i++) {
+        setTimeout(() => {
+            // 爆炸粒子
+            const particle = document.createElement('div');
+            particle.className = 'explosion-particle';
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.left = Math.random() * 100 + 'vw';
+            particle.style.top = Math.random() * 100 + 'vh';
+            
+            // 随机方向，扩大范围
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 100 + Math.random() * 600; // 增大范围
+            const tx = Math.cos(angle) * distance;
+            const ty = Math.sin(angle) * distance;
+            
+            particle.style.setProperty('--tx', tx + 'px');
+            particle.style.setProperty('--ty', ty + 'px');
+            
+            container.appendChild(particle);
+            
+            // 添加闪光效果
+            if (i % 5 === 0) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = particle.style.left;
+                sparkle.style.top = particle.style.top;
+                sparkle.style.backgroundColor = 'gold';
+                
+                const sparkleAngle = Math.random() * Math.PI * 2;
+                const sparkleDistance = 40 + Math.random() * 200;
+                const stx = Math.cos(sparkleAngle) * sparkleDistance;
+                const sty = Math.sin(sparkleAngle) * sparkleDistance;
+                
+                sparkle.style.setProperty('--tx', stx + 'px');
+                sparkle.style.setProperty('--ty', sty + 'px');
+                
+                container.appendChild(sparkle);
+                
+                setTimeout(() => {
+                    sparkle.remove();
+                }, 1500);
+            }
+            
+            // 动画结束后移除
+            setTimeout(() => {
+                particle.remove();
+            }, 1500);
+        }, i * 30); // 缩短间隔时间增加密度
+    }
+    
+    // 添加中心爆炸效果
+    createCenterExplosion(container);
+    
+    // 添加边缘烟花效果
+    createEdgeFireworks(container);
+}
+
+// 创建中心爆炸效果
+function createCenterExplosion(container) {
+    const centerColors = ['#ff0000', '#ffff00', '#00ffff', '#ff00ff', '#ffffff'];
+    
+    for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+            const particle = document.createElement('div');
+            particle.className = 'explosion-particle';
+            particle.style.backgroundColor = centerColors[Math.floor(Math.random() * centerColors.length)];
+            particle.style.left = '50%';
+            particle.style.top = '50%';
+            
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 50 + Math.random() * 300;
+            const tx = Math.cos(angle) * distance;
+            const ty = Math.sin(angle) * distance;
+            
+            particle.style.setProperty('--tx', tx + 'px');
+            particle.style.setProperty('--ty', ty + 'px');
+            particle.style.boxShadow = '0 0 15px white';
+            
+            container.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 1500);
+        }, i * 10);
+    }
+}
+
+// 创建边缘烟花效果
+function createEdgeFireworks(container) {
+    const positions = [
+        { left: '0%', top: '0%' },     // 左上角
+        { left: '100%', top: '0%' },   // 右上角
+        { left: '0%', top: '100%' },   // 左下角
+        { left: '100%', top: '100%' }, // 右下角
+        { left: '50%', top: '0%' },    // 顶部中间
+        { left: '50%', top: '100%' },  // 底部中间
+        { left: '0%', top: '50%' },    // 左侧中间
+        { left: '100%', top: '50%' }   // 右侧中间
+    ];
+    
+    const colors = ['#ff6b6b', '#ff8e8e', '#ffaaaa', '#ff6b9d', '#ff8ec6', '#ff0000', '#ffff00', '#00ff00'];
+    
+    positions.forEach((pos, index) => {
+        setTimeout(() => {
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'explosion-particle';
+                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.left = pos.left;
+                particle.style.top = pos.top;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 30 + Math.random() * 150;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                
+                container.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 1500);
+            }
+        }, index * 500); // 每个位置间隔500毫秒
+    });
+}
+
+// 创建撒爱心效果 - 增强版
+function createHeartsAnimation(container) {
+    const colors = ['#ff6b6b', '#ff8e8e', '#ffaaaa', '#ff6b9d', '#ff8ec6', '#d23669', '#ff4757'];
+    
+    // 增加爱心数量到300
+    for (let i = 0; i < 300; i++) {
+        setTimeout(() => {
+            const heart = document.createElement('div');
+            heart.className = 'heart-particle';
+            heart.innerHTML = '❤️';
+            heart.style.color = colors[Math.floor(Math.random() * colors.length)];
+            
+            // 随机位置，覆盖更大范围
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.fontSize = (Math.random() * 30 + 15) + 'px'; // 增大尺寸
+            heart.style.animationDuration = (Math.random() * 2 + 1) + 's'; // 加速动画
+            heart.style.top = '0';
+            
+            // 随机方向，扩大范围
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 100 + Math.random() * 700; // 增大范围
+            const tx = Math.cos(angle) * distance;
+            const ty = Math.sin(angle) * distance;
+            
+            heart.style.setProperty('--tx', tx + 'px');
+            heart.style.setProperty('--ty', ty + 'px');
+            
+            container.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 3000);
+        }, i * 20); // 缩短间隔时间增加密度
+    }
+}
+
+// 创建全屏闪光效果
+function createFullScreenFlash(container) {
+    const flash = document.createElement('div');
+    flash.style.position = 'fixed';
+    flash.style.top = '0';
+    flash.style.left = '0';
+    flash.style.width = '100%';
+    flash.style.height = '100%';
+    flash.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+    flash.style.pointerEvents = 'none';
+    flash.style.zIndex = '1001';
+    flash.style.animation = 'flash 0.5s ease-out forwards';
+    
+    container.appendChild(flash);
+    
+    // 定义闪光动画
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes flash {
+            0% { opacity: 0; }
+            50% { opacity: 0.9; }
+            100% { opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    setTimeout(() => {
+        flash.remove();
+        style.remove();
+    }, 500);
+}
+
+// 创建环状扩散效果
+function createRingEffects(container) {
+    for (let i = 0; i < 10; i++) {
+        setTimeout(() => {
+            const ring = document.createElement('div');
+            ring.className = 'ring';
+            ring.style.left = '50%';
+            ring.style.top = '50%';
+            ring.style.borderColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            ring.style.animationDuration = `${Math.random() * 1 + 1}s`;
+            container.appendChild(ring);
+            
+            setTimeout(() => {
+                ring.remove();
+            }, 2000);
+        }, i * 300);
+    }
+}
+
+// 重新开始测验
+function restartQuiz() {
+    currentQuestion = 0;
+    score = 0;
+    selectedOption = null;
+    userAnswers = new Array(questions.length).fill(null);
+    
+    document.getElementById('quizContainer').style.display = 'block';
+    document.getElementById('prevBtn').style.display = 'none';
+    document.getElementById('nextBtn').style.display = 'block';
+    document.getElementById('result').style.display = 'none';
+    
+    // 隐藏任何正在显示的庆祝动画
+    document.getElementById('celebration-container').style.display = 'none';
+    
+    loadQuestion();
+    
+    // 滚动到顶部
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// 返回生日祝福页面
+function goBack() {
+    window.location.href = "birthday.html";
+}
+
+// 确保DOM完全加载后再执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化测验
+    loadQuestion();
+    initFloatingHearts();
+    
+    // 为选项添加点击音效
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('option')) {
+            document.getElementById('selectSound').currentTime = 0;
+            document.getElementById('selectSound').play();
+        }
+    });
+});
+
+
+// 音乐控制
+const bgMusic = document.getElementById('bgMusic');
+let isMusicPlaying = true; // 初始状态为播放
+
+// 创建音乐按钮
+const musicBtn = document.createElement('button');
+musicBtn.textContent = '🎵 暂停音乐';
+musicBtn.classList.add('music-btn');
+musicBtn.onclick = toggleMusic;
+document.body.appendChild(musicBtn);
+
+// 自动播放音乐（需要用户交互后才能播放，所以添加点击事件）
+document.addEventListener('DOMContentLoaded', function() {
+    // 尝试自动播放（可能需要用户交互）
+    const playPromise = bgMusic.play();
+    
+    if (playPromise !== undefined) {
+        playPromise.catch(error => {
+            // 自动播放失败，等待用户交互
+            musicBtn.textContent = '🎵 播放音乐';
+            isMusicPlaying = false;
+        });
+    }
+});
+
+// 点击按钮音效
+function playClickSound() {
+    const clickSound = new Audio('https://www.soundjay.com/buttons/sounds/button-11.mp3');
+    clickSound.volume = 0.3;
+    clickSound.play();
+}
+
+// 音乐切换函数
+function toggleMusic() {
+    playClickSound();
+    
+    if (isMusicPlaying) {
+        bgMusic.pause();
+        musicBtn.textContent = '🎵 播放音乐';
+    } else {
+        bgMusic.play();
+        musicBtn.textContent = '🎵 暂停音乐';
+    }
+    isMusicPlaying = !isMusicPlaying;
+}
+
+// 为所有按钮添加点击音效
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', playClickSound);
+    });
+});
+</script>
+</body>
+</html>
