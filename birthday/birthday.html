@@ -1,6 +1,7 @@
-<!DOCTYPE html>
+<!DOCTYPE html>、
 <html lang="zh">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Happy Birthday My Love!</title>
@@ -316,30 +317,76 @@
                 });
             });
         });
-        
-        // 倒计时功能
-        function updateCountdown() {
-            const now = new Date();
-            const nextBirthday = new Date(now.getFullYear() + 1, 5, 26); // 2025年6月7日
-            if (now > nextBirthday) {
-                nextBirthday.setFullYear(nextBirthday.getFullYear() + 1);
-            }
-            
-            const diff = nextBirthday - now;
-            
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            
-            document.getElementById('days').textContent = days.toString().padStart(2, '0');
-            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
-            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
-            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+function updateCountdown() {
+    try {
+        // 1. 检查农历库是否成功引入
+        if (typeof Lunar === 'undefined') {
+            console.error('错误：未检测到 lunar-javascript 库！请在 HTML 的 <head> 中加入以下代码引入库：');
+            console.error('<script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"><\/script>') ;
+            return; // 停止执行
         }
+
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth(); // 0-11
+        const currentDate = now.getDate();   // 1-31
+
+        let targetYear = currentYear;
         
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
+        // 2. 获取今年农历五月十二对应的公历日期
+        let lunarDate = Lunar.fromYmd(targetYear, 5, 12);
+        let solarDate = lunarDate.getSolar();
+        
+        // 注意：lunar-javascript 的 getMonth() 返回 1-12，JS Date 的月份是 0-11，所以要减1
+        let nextBirthday = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
+
+        // 3. 判断今年的农历生日是否已经过去（或者就是今天）
+        // 比较年月日即可，避免时分秒的干扰
+        const isPassed = (currentMonth > nextBirthday.getMonth()) || 
+                         (currentMonth === nextBirthday.getMonth() && currentDate > nextBirthday.getDate()) ||
+                         (currentMonth === nextBirthday.getMonth() && currentDate === nextBirthday.getDate()); // 如果今天就是生日，也算到期
+
+        if (isPassed) {
+            // 今年已过，算明年的
+            targetYear++;
+            lunarDate = Lunar.fromYmd(targetYear, 5, 12);
+            solarDate = lunarDate.getSolar();
+            nextBirthday = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
+        }
+
+        // 4. 计算时间差
+        const diff = nextBirthday.getTime() - now.getTime();
+        
+        // 如果今天就是生日当天，diff 会是负数（因为 nextBirthday 是当天0点，now 是当前时间）
+        if (diff <= 0) {
+            // 生日已到，倒计时归零（或者你可以改成显示“生日快乐”）
+            document.getElementById('days').textContent = '00';
+            document.getElementById('hours').textContent = '00';
+            document.getElementById('minutes').textContent = '00';
+            document.getElementById('seconds').textContent = '00';
+            return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        document.getElementById('days').textContent = days.toString().padStart(2, '0');
+        document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+        document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+        document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+
+    } catch (error) {
+        // 如果有其他错误，打印在控制台方便排查
+        console.error('倒计时计算出错:', error);
+    }
+}
+
+// 每秒执行一次
+setInterval(updateCountdown, 1000);
+updateCountdown();
+
         
         // 记忆墙数据
         const memories = [
